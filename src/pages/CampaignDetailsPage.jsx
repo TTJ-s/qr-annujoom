@@ -86,7 +86,7 @@ const CampaignDetailsPage = () => {
   };
 
   const referred_by = localStorage.getItem("referred_by");
-  
+
   const handleDonate = async () => {
     if (
       campaign.target_amount &&
@@ -347,9 +347,20 @@ const CampaignDetailsPage = () => {
                 <span className="text-sm text-gray-600 font-medium">
                   {getText({ en: "DUE DATE", ml: "അവസാന തീയതി" })}
                 </span>
-                <div className="flex items-center gap-2 bg-[rgba(13,42,77,1)] px-3 py-1.5 rounded-lg">
-                  <span className="text-sm text-white font-semibold">
-                    📅 {formatDate(campaign.target_date)}
+
+                <div className="flex items-center gap-3 bg-[#0D2A4D] px-4 py-2 rounded-lg">
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    className="w-4 h-4 text-white"
+                    fill="currentColor"
+                  >
+                    <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 16H5V10h14zM9 14H7v-2h2zm4 0h-2v-2h2zm4 0h-2v-2h2zm-8 4H7v-2h2zm4 0h-2v-2h2zm4 0h-2v-2h2z" />
+                  </svg>
+
+                  {/* Date */}
+                  <span className="text-sm font-semibold tracking-wide text-white">
+                    {formatDate(campaign.target_date)}
                   </span>
                 </div>
               </div>
@@ -446,7 +457,7 @@ const CampaignDetailsPage = () => {
               className={`w-full py-3.5 rounded-lg font-semibold text-white transition ${
                 donating || isTargetReached
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-rose-600 hover:bg-rose-700"
+                  : "bg-[rgba(188,9,45,1)] hover:bg-[rgba(160,8,38,1)]"
               }`}
             >
               {isTargetReached ? (

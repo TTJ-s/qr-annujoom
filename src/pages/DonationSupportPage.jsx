@@ -4,6 +4,7 @@ import { fetchCampaigns } from "../services/campaignService";
 import { useLanguage } from "../components/LanguageContext";
 import LanguageToggle from "../components/LanguageToggle";
 import { useParams } from "react-router-dom";
+import annujoomLogo from "../assets/images/annujoom_logo.png";
 
 const DonationSupportPage = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -126,9 +127,14 @@ const DonationSupportPage = () => {
         {/* Header with Language Toggle */}
         <div className="bg-white border-b border-gray-200">
           <div className="flex items-center justify-between px-4 py-4">
-            <h3 className="text-xl font-semibold text-gray-900">
-              {getText({ en: "Donations", ml: "സംഭാവനകൾ" })}
-            </h3>
+            {/* Logo */}
+            <img
+              src={annujoomLogo}
+              alt="Anujoom Logo"
+              className="h-9 md:h-10 object-contain"
+            />
+
+            {/* Language Toggle */}
             <LanguageToggle />
           </div>
         </div>

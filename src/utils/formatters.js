@@ -1,21 +1,9 @@
+import moment from "moment-timezone";
+
 // Format currency
 export const formatCurrency = (amount) => {
   if (!amount && amount !== 0) return '₹0'
   return '₹' + amount.toLocaleString('en-IN')
-}
-
-// Format date
-export const formatDate = (dateString) => {
-  if (!dateString) return 'No deadline'
-  
-  const date = new Date(dateString)
-  if (isNaN(date.getTime())) return 'Invalid date'
-  
-  return date.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }).toUpperCase()
 }
 
 // Calculate progress percentage
@@ -34,3 +22,15 @@ export const cleanDescription = (text, maxLength = 150) => {
   }
   return cleaned
 }
+
+export const formatDate = (
+  date,
+  timezone = "Asia/Kolkata"
+) => {
+  if (!date) return "";
+
+  return moment(date)
+    .tz(timezone)
+    .format("DD MMM YYYY")
+    .toUpperCase(); 
+};
