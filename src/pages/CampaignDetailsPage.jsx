@@ -14,6 +14,7 @@ import {
   calculateProgress,
   cleanDescription,
 } from "../utils/formatters";
+import PaymentMethodModal from "../components/PaymentMethodModal";
 
 const CampaignDetailsPage = () => {
   const { id } = useParams();
@@ -32,7 +33,10 @@ const CampaignDetailsPage = () => {
   // Form state
   const [amount, setAmount] = useState("");
   const [donorName, setDonorName] = useState("");
-  const [addName, setAddName] = useState(false);
+  const [donorPhone, setDonorPhone] = useState("");
+  const [donorEmail, setDonorEmail] = useState("");
+
+  const [showPaymentMethod, setShowPaymentMethod] = useState(false);
 
   const amountInputRef = useRef(null);
   const shouldFocusDonation = searchParams.get("donate") === "true";
@@ -85,6 +89,78 @@ const CampaignDetailsPage = () => {
     setAmount(value);
   };
 
+  const isAllFieldsEmpty = () => {
+    return (
+      !amount && !donorName.trim() && !donorPhone.trim() && !donorEmail.trim()
+    );
+  };
+
+  const validateFormBeforePayment = () => {
+    const amountNum = parseInt(amount.replace(/[^0-9]/g, ""));
+
+    if (!amountNum || amountNum <= 0) {
+      showToast(
+        getText({
+          en: "Please enter a valid amount",
+          ml: "ദയവായി സാധുവായ തുക നൽകുക",
+        })
+      );
+      return false;
+    }
+
+    if (!donorName.trim()) {
+      showToast(
+        getText({
+          en: "Please enter your name",
+          ml: "ദയവായി നിങ്ങളുടെ പേര് നൽകുക",
+        })
+      );
+      return false;
+    }
+
+    if (!donorPhone.trim()) {
+      showToast(
+        getText({
+          en: "Please enter your mobile number",
+          ml: "ദയവായി നിങ്ങളുടെ മൊബൈൽ നമ്പർ നൽകുക",
+        })
+      );
+      return false;
+    }
+
+    if (!/^[6-9]\d{9}$/.test(donorPhone)) {
+      showToast(
+        getText({
+          en: "Please enter a valid 10-digit mobile number",
+          ml: "സാധുവായ 10 അക്ക മൊബൈൽ നമ്പർ നൽകുക",
+        })
+      );
+      return false;
+    }
+
+    if (!donorEmail.trim()) {
+      showToast(
+        getText({
+          en: "Please enter your email address",
+          ml: "ദയവായി നിങ്ങളുടെ ഇമെയിൽ വിലാസം നൽകുക",
+        })
+      );
+      return false;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(donorEmail)) {
+      showToast(
+        getText({
+          en: "Please enter a valid email address",
+          ml: "സാധുവായ ഇമെയിൽ വിലാസം നൽകുക",
+        })
+      );
+      return false;
+    }
+
+    return true;
+  };
+
   const referred_by = localStorage.getItem("referred_by");
 
   const handleDonate = async () => {
@@ -103,26 +179,6 @@ const CampaignDetailsPage = () => {
 
     const amountNum = parseInt(amount.replace(/[^0-9]/g, ""));
 
-    if (!amountNum || amountNum <= 0) {
-      showToast(
-        getText({
-          en: "Please enter a valid amount",
-          ml: "ദയവായി സാധുവായ തുക നൽകുക",
-        })
-      );
-      return;
-    }
-
-    if (addName && !donorName.trim()) {
-      showToast(
-        getText({
-          en: "Please enter your name",
-          ml: "ദയവായി നിങ്ങളുടെ പേര് നൽകുക",
-        })
-      );
-      return;
-    }
-
     try {
       setDonating(true);
 
@@ -131,7 +187,11 @@ const CampaignDetailsPage = () => {
         campaign: id,
         amount: amountNum,
         currency: "INR",
-        outside_user: addName ? { name: donorName } : undefined,
+        outside_user: {
+          name: donorName.trim(),
+          phone: donorPhone.trim(),
+          email: donorEmail.trim(),
+        },
         referred_by: referred_by || undefined,
       });
 
@@ -158,7 +218,9 @@ const CampaignDetailsPage = () => {
         },
 
         prefill: {
-          name: donorName || "",
+          name: donorName,
+          email: donorEmail,
+          contact: donorPhone,
         },
 
         theme: {
@@ -187,6 +249,22 @@ const CampaignDetailsPage = () => {
       );
     } finally {
       setDonating(false);
+    }
+  };
+
+  const handlePaymentProceed = (method) => {
+    setShowPaymentMethod(false);
+
+    if (method === "razorpay") {
+      handleDonate(); // existing Razorpay flow
+    } else {
+      // Mswipe Bank flow (redirect / UPI / manual)
+      showToast(
+        getText({
+          en: "Mswipe Bank payment coming soon",
+          ml: "യൂണിയൻ ബാങ്ക് പേയ്മെന്റ് ഉടൻ ലഭ്യമാകും",
+        })
+      );
     }
   };
 
@@ -387,11 +465,11 @@ const CampaignDetailsPage = () => {
 
           {/* Donation Section */}
           <div className="mb-4">
+            {/* Amount */}
             <h2 className="text-base font-semibold text-gray-900 mb-4">
               {getText({ en: "Enter Donation Amount", ml: "സംഭാവന തുക നൽകുക" })}
+              <span className="text-red-500 ml-1">*</span>
             </h2>
-
-            {/* Amount Input */}
             <div className="mb-4">
               <input
                 ref={amountInputRef}
@@ -403,56 +481,101 @@ const CampaignDetailsPage = () => {
                   ml: "₹ തുക നൽകുക",
                 })}
                 className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-sm"
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    handleDonate();
-                  }
-                }}
               />
             </div>
 
-            {/* Checkbox to add name */}
-            <div className="mb-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={addName}
-                  onChange={(e) => setAddName(e.target.checked)}
-                  className="w-4 h-4 text-rose-600 rounded focus:ring-rose-500"
-                />
-                <span className="text-sm text-gray-700">
-                  {getText({
-                    en: "Add your name to donation",
-                    ml: "സംഭാവനയിൽ നിങ്ങളുടെ പേര് ചേർക്കുക",
-                  })}
-                </span>
-              </label>
+            {/* Donor Name */}
+            <h2 className="text-base text-gray-900 mb-4">
+              {getText({
+                en: "Enter Your Name",
+                ml: "നിങ്ങളുടെ പേര് നൽകുക",
+              })}
+              <span className="text-red-500 ml-1">*</span>
+            </h2>
+            <div className="mb-6">
+              <input
+                type="text"
+                value={donorName}
+                onChange={(e) => setDonorName(e.target.value)}
+                placeholder={getText({
+                  en: "Enter your name *",
+                  ml: "നിങ്ങളുടെ പേര് നൽകുക *",
+                })}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-sm"
+              />
             </div>
 
-            {/* Donor Name Input */}
-            {addName && (
-              <div className="mb-6">
-                <input
-                  type="text"
-                  value={donorName}
-                  onChange={(e) => setDonorName(e.target.value)}
-                  placeholder={getText({
-                    en: "Enter your name",
-                    ml: "നിങ്ങളുടെ പേര് നൽകുക",
-                  })}
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-sm"
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleDonate();
-                    }
-                  }}
-                />
-              </div>
-            )}
+            {/* Mobile Number */}
+            <h2 className="text-base text-gray-900 mb-4">
+              {getText({
+                en: "Mobile Number",
+                ml: "മൊബൈൽ നമ്പർ",
+              })}
+              <span className="text-red-500 ml-1">*</span>
+            </h2>
+            <div className="mb-6">
+              <input
+                type="tel"
+                value={donorPhone}
+                onChange={(e) =>
+                  setDonorPhone(e.target.value.replace(/[^0-9]/g, ""))
+                }
+                placeholder={getText({
+                  en: "Enter phone number",
+                  ml: "മൊബൈൽ നമ്പർ നൽകുക",
+                })}
+                maxLength={10}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg
+               focus:outline-none focus:ring-2 focus:ring-rose-500
+               focus:border-transparent text-sm"
+              />
+            </div>
+
+            {/* Email Address */}
+            <h2 className="text-base text-gray-900 mb-4">
+              {getText({
+                en: "Email Address",
+                ml: "ഇമെയിൽ വിലാസം",
+              })}
+              <span className="text-red-500 ml-1">*</span>
+            </h2>
+            <div className="mb-6">
+              <input
+                type="email"
+                value={donorEmail}
+                onChange={(e) => setDonorEmail(e.target.value)}
+                placeholder={getText({
+                  en: "Enter address",
+                  ml: "ഇമെയിൽ വിലാസം നൽകുക",
+                })}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg
+               focus:outline-none focus:ring-2 focus:ring-rose-500
+               focus:border-transparent text-sm"
+              />
+            </div>
 
             {/* Donate Button */}
             <button
-              onClick={handleDonate}
+              onClick={() => {
+                // Case 1: All empty → generic message
+                if (isAllFieldsEmpty()) {
+                  showToast(
+                    getText({
+                      en: "Please fill all required fields",
+                      ml: "ദയവായി എല്ലാ നിർബന്ധിത വിവരങ്ങളും നൽകുക",
+                    })
+                  );
+                  return;
+                }
+
+                // Case 2: Some fields filled → validate properly
+                if (!validateFormBeforePayment()) {
+                  return;
+                }
+
+                // Case 3: All valid → open payment method
+                setShowPaymentMethod(true);
+              }}
               disabled={donating || isTargetReached}
               className={`w-full py-3.5 rounded-lg font-semibold text-white transition ${
                 donating || isTargetReached
@@ -482,6 +605,14 @@ const CampaignDetailsPage = () => {
         message={toast.message}
         onClose={() => setToast({ show: false, message: "" })}
       />
+
+      {showPaymentMethod && (
+        <PaymentMethodModal
+          amount={parseInt(amount.replace(/[^0-9]/g, "")) || 0}
+          onClose={() => setShowPaymentMethod(false)}
+          onProceed={handlePaymentProceed}
+        />
+      )}
     </div>
   );
 };
