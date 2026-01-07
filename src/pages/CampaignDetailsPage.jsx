@@ -163,108 +163,97 @@ const CampaignDetailsPage = () => {
 
   const referred_by = localStorage.getItem("referred_by");
 
-  const handleDonate = async () => {
-    if (
-      campaign.target_amount &&
-      campaign.collected_amount >= campaign.target_amount
-    ) {
-      showToast(
-        getText({
-          en: "This campaign has already reached its target.",
-          ml: "ഈ കാമ്പെയ്ൻ ഇതിനകം ലക്ഷ്യം നേടിയിട്ടുണ്ട്.",
-        })
-      );
-      return;
-    }
+  // ONLY Razorpay UI logic (NO API CALL HERE)
+  const openRazorpay = (donation) => {
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount: donation.amount * 100,
+      currency: "INR",
+      name: "Donation",
+      description: campaign.title.en,
+      order_id: donation.payment_id,
+
+      handler: async (response) => {
+        try {
+          await verifyPayment({
+            donation_id: donation._id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          });
+
+          setDonationSuccess(true);
+          setAmount("");
+          setDonorName("");
+          setDonorPhone("");
+          setDonorEmail("");
+          localStorage.removeItem("referred_by");
+          await loadCampaign();
+        } catch (err) {
+          showToast(
+            getText({
+              en: "Payment verification failed",
+              ml: "പേയ്മെന്റ് സ്ഥിരീകരണം പരാജയപ്പെട്ടു",
+            })
+          );
+        }
+      },
+
+      prefill: {
+        name: donorName,
+        email: donorEmail,
+        contact: donorPhone,
+      },
+
+      theme: { color: "#e11d48" },
+    };
+
+    new window.Razorpay(options).open();
+  };
+
+  const handlePaymentProceed = async (method) => {
+    if (donating) return;
+    setShowPaymentMethod(false);
 
     const amountNum = parseInt(amount.replace(/[^0-9]/g, ""));
+
+    const payload = {
+      campaign: id,
+      amount: amountNum,
+      currency: "INR",
+      gateway: method,
+      outside_user: {
+        name: donorName.trim(),
+      },
+      phone: donorPhone.trim(),
+      email: donorEmail.trim(),
+      referred_by: referred_by || undefined,
+    };
 
     try {
       setDonating(true);
 
-      // CREATE DONATION + RAZORPAY ORDER
-      const donation = await createOutsideDonation({
-        campaign: id,
-        amount: amountNum,
-        currency: "INR",
-        outside_user: {
-          name: donorName.trim(),
-          phone: donorPhone.trim(),
-          email: donorEmail.trim(),
-        },
-        referred_by: referred_by || undefined,
-      });
+      const donation = await createOutsideDonation(payload);
 
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: amountNum * 100,
-        currency: "INR",
-        name: "Donation",
-        description: campaign.title.en,
-        order_id: donation.payment_id,
+      // Razorpay
+      if (method === "razorpay") {
+        openRazorpay(donation);
+        return;
+      }
 
-        handler: async function (razorpayResponse) {
-          await verifyPayment({
-            razorpay_order_id: razorpayResponse.razorpay_order_id,
-            razorpay_payment_id: razorpayResponse.razorpay_payment_id,
-            razorpay_signature: razorpayResponse.razorpay_signature,
-            donation_id: donation._id,
-          });
+      // Mswipe
+      if (method === "mswipe") {
+        if (!donation.payment_url) {
+          throw new Error("Payment URL not received");
+        }
 
-          // SUCCESS
-          setDonationSuccess(true);
-          localStorage.removeItem("referred_by");
-          await loadCampaign();
-        },
-
-        prefill: {
-          name: donorName,
-          email: donorEmail,
-          contact: donorPhone,
-        },
-
-        theme: {
-          color: "#e11d48",
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-
-      rzp.on("payment.failed", function () {
-        showToast(
-          getText({
-            en: "Payment was cancelled or failed",
-            ml: "പേയ്മെന്റ് റദ്ദാക്കുകയോ പരാജയപ്പെടുകയോ ചെയ്തു",
-          })
-        );
-      });
-
-      rzp.open();
+        // Redirect to Mswipe hosted page
+        window.location.href = donation.payment_url;
+      }
     } catch (err) {
-      showToast(
-        getText({
-          en: "Payment failed. Please try again.",
-          ml: "പേയ്മെന്റ് പരാജയപ്പെട്ടു. ദയവായി വീണ്ടും ശ്രമിക്കുക.",
-        })
-      );
+      showToast(err.message);
     } finally {
       setDonating(false);
-    }
-  };
-
-  const handlePaymentProceed = (method) => {
-    setShowPaymentMethod(false);
-
-    if (method === "razorpay") {
-      handleDonate(); // existing Razorpay flow
-    } else {
-      // Mswipe Bank flow (redirect / UPI / manual)
-      showToast(
-        getText({
-          en: "Mswipe Bank payment coming soon",
-          ml: "യൂണിയൻ ബാങ്ക് പേയ്മെന്റ് ഉടൻ ലഭ്യമാകും",
-        })
-      );
     }
   };
 
