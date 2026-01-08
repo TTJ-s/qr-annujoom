@@ -6,9 +6,9 @@ import { ChevronLeft } from "lucide-react";
 const PaymentMethodModal = ({ amount = 0, onClose, onProceed }) => {
   const [method, setMethod] = useState("razorpay");
 
-  const convenienceFee = method === "razorpay" ? Math.round(amount * 0.02) : 0;
+  const convenienceFee = method === "razorpay" ? Number((amount * 0.02).toFixed(2)) : 0;
 
-  const totalPayable = amount + convenienceFee;
+  const totalPayable = Number((amount + convenienceFee).toFixed(2));
 
   return (
     <div className="fixed inset-0 bg-gray-50 z-50">

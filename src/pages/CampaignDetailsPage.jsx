@@ -58,19 +58,6 @@ const CampaignDetailsPage = () => {
     }
   }, [shouldFocusDonation, campaign]);
 
-  useEffect(() => {
-  if (showPaymentMethod) {
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "";
-  }
-
-  return () => {
-    document.body.style.overflow = "";
-  };
-}, [showPaymentMethod]);
-
-
   const loadCampaign = async () => {
     try {
       setLoading(true);
@@ -179,9 +166,12 @@ const CampaignDetailsPage = () => {
 
   // ONLY Razorpay UI logic (NO API CALL HERE)
   const openRazorpay = (donation) => {
+    const convenienceFee = Number((donation.amount * 0.02).toFixed(2));
+    const totalPayable = Number((donation.amount + convenienceFee).toFixed(2));
+
     const options = {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-      amount: donation.amount * 100,
+      amount: Math.round(totalPayable * 100),
       currency: "INR",
       name: "Donation",
       description: campaign.title.en,
@@ -230,10 +220,12 @@ const CampaignDetailsPage = () => {
     setShowPaymentMethod(false);
 
     const amountNum = parseInt(amount.replace(/[^0-9]/g, ""));
+    const convenienceFee = Number((amountNum * 0.02).toFixed(2));
+    const totalPayable = Number((amountNum + convenienceFee).toFixed(2));
 
     const payload = {
       campaign: id,
-      amount: amountNum,
+      amount: totalPayable,
       currency: "INR",
       gateway: method,
       outside_user: {
