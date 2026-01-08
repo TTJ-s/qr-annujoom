@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import razorpayLogo from "../assets/images/Razorpay_logo.svg.png";
 import MswipeLogo from "../assets/images/Mswipe.png";
+import { ChevronLeft } from "lucide-react";
 
 const PaymentMethodModal = ({ amount = 0, onClose, onProceed }) => {
   const [method, setMethod] = useState("razorpay");
@@ -20,17 +21,7 @@ const PaymentMethodModal = ({ amount = 0, onClose, onProceed }) => {
               className="w-8 h-8 flex items-center justify-center text-gray-700 hover:text-gray-900"
               aria-label="Back"
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="w-5 h-5"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
+              <ChevronLeft size={24} strokeWidth={2.5} />
             </button>
 
             <h2 className="text-base font-semibold text-gray-900">

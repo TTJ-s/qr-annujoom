@@ -15,6 +15,7 @@ import {
   cleanDescription,
 } from "../utils/formatters";
 import PaymentMethodModal from "../components/PaymentMethodModal";
+import { ChevronLeft } from "lucide-react";
 
 const CampaignDetailsPage = () => {
   const { id } = useParams();
@@ -331,7 +332,7 @@ const CampaignDetailsPage = () => {
               onClick={() => navigate(-1)}
               className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition"
             >
-              <span className="text-xl">‹</span>
+              <ChevronLeft size={32} className="p-1 -ml-1" />
               <span className="font-medium">
                 {getText({
                   en: "Campaign Details",

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchCampaigns } from "../services/campaignService";
 import { useLanguage } from "../components/LanguageContext";
@@ -71,7 +72,6 @@ const GeneralCampaignListPage = () => {
 
   const goToDetails = (id) => navigate(`/campaign/${id}`);
 
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -116,7 +116,6 @@ const GeneralCampaignListPage = () => {
     );
   }
 
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-2xl mx-auto">
@@ -127,7 +126,7 @@ const GeneralCampaignListPage = () => {
               onClick={() => navigate(-1)}
               className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition"
             >
-              <span className="text-xl">‹</span>
+              <ChevronLeft size={32} className="p-1 -ml-1" />
               <span className="font-medium">
                 {getText({ en: "General Campaign", ml: "പൊതു കാമ്പെയ്ൻ" })}
               </span>
