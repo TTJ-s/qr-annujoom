@@ -220,7 +220,7 @@ const CampaignDetailsPage = () => {
     setShowPaymentMethod(false);
 
     const amountNum = parseInt(amount.replace(/[^0-9]/g, ""));
-    const convenienceFee = Number((amountNum * 0.02).toFixed(2));
+    const convenienceFee = method === "razorpay" ? Number((amountNum * 0.02).toFixed(2)) : 0;
     const totalPayable = Number((amountNum + convenienceFee).toFixed(2));
 
     const payload = {
