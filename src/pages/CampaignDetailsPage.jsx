@@ -58,6 +58,19 @@ const CampaignDetailsPage = () => {
     }
   }, [shouldFocusDonation, campaign]);
 
+  useEffect(() => {
+  if (showPaymentMethod) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
+
+  return () => {
+    document.body.style.overflow = "";
+  };
+}, [showPaymentMethod]);
+
+
   const loadCampaign = async () => {
     try {
       setLoading(true);
