@@ -4,9 +4,10 @@ import MswipeLogo from "../assets/images/Mswipe.png";
 import { ChevronLeft } from "lucide-react";
 
 const PaymentMethodModal = ({ amount = 0, onClose, onProceed }) => {
-  const [method, setMethod] = useState("razorpay");
+  const [method, setMethod] = useState("mswipe");
 
-  const convenienceFee = method === "razorpay" ? Number((amount * 0.02).toFixed(2)) : 0;
+  const convenienceFee =
+    method === "razorpay" ? Number((amount * 0.02).toFixed(2)) : 0;
 
   const totalPayable = Number((amount + convenienceFee).toFixed(2));
 
@@ -33,40 +34,6 @@ const PaymentMethodModal = ({ amount = 0, onClose, onProceed }) => {
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
-            {/* Razorpay */}
-            <div
-              onClick={() => setMethod("razorpay")}
-              className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition ${
-                method === "razorpay"
-                  ? "border-rose-500 bg-rose-50"
-                  : "border-gray-200 bg-white"
-              }`}
-            >
-              <div>
-                <div className="flex items-center gap-2">
-                  <img
-                    src={razorpayLogo}
-                    alt="razorpay Logo"
-                    className="h-5 md:h-5 object-contain"
-                  />
-                  <span className="font-medium text-gray-900">Razorpay</span>
-                </div>
-                <p className="text-xs text-orange-500 mt-1">
-                  2% convenience fee applicable
-                </p>
-              </div>
-
-              <div
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                  method === "razorpay" ? "border-rose-600" : "border-gray-300"
-                }`}
-              >
-                {method === "razorpay" && (
-                  <div className="w-2.5 h-2.5 bg-rose-600 rounded-full" />
-                )}
-              </div>
-            </div>
-
             {/* Mswipe Bank */}
             <div
               onClick={() => setMethod("mswipe")}
@@ -96,6 +63,40 @@ const PaymentMethodModal = ({ amount = 0, onClose, onProceed }) => {
                 }`}
               >
                 {method === "mswipe" && (
+                  <div className="w-2.5 h-2.5 bg-rose-600 rounded-full" />
+                )}
+              </div>
+            </div>
+
+            {/* Razorpay */}
+            <div
+              onClick={() => setMethod("razorpay")}
+              className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition ${
+                method === "razorpay"
+                  ? "border-rose-500 bg-rose-50"
+                  : "border-gray-200 bg-white"
+              }`}
+            >
+              <div>
+                <div className="flex items-center gap-2">
+                  <img
+                    src={razorpayLogo}
+                    alt="razorpay Logo"
+                    className="h-5 md:h-5 object-contain"
+                  />
+                  <span className="font-medium text-gray-900">Razorpay</span>
+                </div>
+                <p className="text-xs text-orange-500 mt-1">
+                  2% convenience fee applicable
+                </p>
+              </div>
+
+              <div
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  method === "razorpay" ? "border-rose-600" : "border-gray-300"
+                }`}
+              >
+                {method === "razorpay" && (
                   <div className="w-2.5 h-2.5 bg-rose-600 rounded-full" />
                 )}
               </div>
