@@ -35,7 +35,6 @@ const CampaignDetailsPage = () => {
   const [amount, setAmount] = useState("");
   const [donorName, setDonorName] = useState("");
   const [donorPhone, setDonorPhone] = useState("");
-  const [donorEmail, setDonorEmail] = useState("");
 
   const [showPaymentMethod, setShowPaymentMethod] = useState(false);
 
@@ -66,7 +65,6 @@ const CampaignDetailsPage = () => {
         throw new Error("Campaign not found");
       }
 
-      // Keep original multilingual data
       const processedCampaign = {
         ...data,
         title: data.title,
@@ -91,9 +89,7 @@ const CampaignDetailsPage = () => {
   };
 
   const isAllFieldsEmpty = () => {
-    return (
-      !amount && !donorName.trim() && !donorPhone.trim() && !donorEmail.trim()
-    );
+    return !amount && !donorName.trim() && !donorPhone.trim();
   };
 
   const validateFormBeforePayment = () => {
@@ -104,7 +100,7 @@ const CampaignDetailsPage = () => {
         getText({
           en: "Please enter a valid amount",
           ml: "ദയവായി സാധുവായ തുക നൽകുക",
-        })
+        }),
       );
       return false;
     }
@@ -114,7 +110,7 @@ const CampaignDetailsPage = () => {
         getText({
           en: "Please enter your name",
           ml: "ദയവായി നിങ്ങളുടെ പേര് നൽകുക",
-        })
+        }),
       );
       return false;
     }
@@ -124,7 +120,7 @@ const CampaignDetailsPage = () => {
         getText({
           en: "Please enter your mobile number",
           ml: "ദയവായി നിങ്ങളുടെ മൊബൈൽ നമ്പർ നൽകുക",
-        })
+        }),
       );
       return false;
     }
@@ -134,27 +130,7 @@ const CampaignDetailsPage = () => {
         getText({
           en: "Please enter a valid 10-digit mobile number",
           ml: "സാധുവായ 10 അക്ക മൊബൈൽ നമ്പർ നൽകുക",
-        })
-      );
-      return false;
-    }
-
-    if (!donorEmail.trim()) {
-      showToast(
-        getText({
-          en: "Please enter your email address",
-          ml: "ദയവായി നിങ്ങളുടെ ഇമെയിൽ വിലാസം നൽകുക",
-        })
-      );
-      return false;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(donorEmail)) {
-      showToast(
-        getText({
-          en: "Please enter a valid email address",
-          ml: "സാധുവായ ഇമെയിൽ വിലാസം നൽകുക",
-        })
+        }),
       );
       return false;
     }
@@ -164,7 +140,6 @@ const CampaignDetailsPage = () => {
 
   const referred_by = localStorage.getItem("referred_by");
 
-  // ONLY Razorpay UI logic (NO API CALL HERE)
   const openRazorpay = (donation) => {
     const convenienceFee = Number((donation.amount * 0.02).toFixed(2));
     const totalPayable = Number((donation.amount + convenienceFee).toFixed(2));
@@ -190,7 +165,6 @@ const CampaignDetailsPage = () => {
           setAmount("");
           setDonorName("");
           setDonorPhone("");
-          setDonorEmail("");
           localStorage.removeItem("referred_by");
           await loadCampaign();
         } catch (err) {
@@ -198,14 +172,13 @@ const CampaignDetailsPage = () => {
             getText({
               en: "Payment verification failed",
               ml: "പേയ്മെന്റ് സ്ഥിരീകരണം പരാജയപ്പെട്ടു",
-            })
+            }),
           );
         }
       },
 
       prefill: {
         name: donorName,
-        email: donorEmail,
         contact: donorPhone,
       },
 
@@ -220,7 +193,8 @@ const CampaignDetailsPage = () => {
     setShowPaymentMethod(false);
 
     const amountNum = parseInt(amount.replace(/[^0-9]/g, ""));
-    const convenienceFee = method === "razorpay" ? Number((amountNum * 0.02).toFixed(2)) : 0;
+    const convenienceFee =
+      method === "razorpay" ? Number((amountNum * 0.02).toFixed(2)) : 0;
     const totalPayable = Number((amountNum + convenienceFee).toFixed(2));
 
     const payload = {
@@ -232,7 +206,6 @@ const CampaignDetailsPage = () => {
         name: donorName.trim(),
       },
       phone: donorPhone.trim(),
-      email: donorEmail.trim(),
       referred_by: referred_by || undefined,
     };
 
@@ -319,7 +292,7 @@ const CampaignDetailsPage = () => {
 
   const progress = calculateProgress(
     campaign.collected_amount,
-    campaign.target_amount
+    campaign.target_amount,
   );
   const hasTarget = campaign.target_amount && campaign.target_amount > 0;
   const hasDueDate = campaign.target_date;
@@ -526,29 +499,6 @@ const CampaignDetailsPage = () => {
               />
             </div>
 
-            {/* Email Address */}
-            <h2 className="text-base text-gray-900 mb-4">
-              {getText({
-                en: "Email Address",
-                ml: "ഇമെയിൽ വിലാസം",
-              })}
-              <span className="text-red-500 ml-1">*</span>
-            </h2>
-            <div className="mb-6">
-              <input
-                type="email"
-                value={donorEmail}
-                onChange={(e) => setDonorEmail(e.target.value)}
-                placeholder={getText({
-                  en: "Enter address",
-                  ml: "ഇമെയിൽ വിലാസം നൽകുക",
-                })}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg
-               focus:outline-none focus:ring-2 focus:ring-rose-500
-               focus:border-transparent text-sm"
-              />
-            </div>
-
             {/* Donate Button */}
             <button
               onClick={() => {
@@ -558,7 +508,7 @@ const CampaignDetailsPage = () => {
                     getText({
                       en: "Please fill all required fields",
                       ml: "ദയവായി എല്ലാ നിർബന്ധിത വിവരങ്ങളും നൽകുക",
-                    })
+                    }),
                   );
                   return;
                 }
